@@ -5,26 +5,35 @@
  */
 package principal;
 
-import java.awt.FileDialog;
-import javax.swing.JFileChooser;
 
-/**
- *
- * @author 0031216
- */
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import javax.swing.JFileChooser;
+import javax.swing.SwingWorker;
+import javax.swing.table.DefaultTableModel;
+import principal.base.InOut;
+
+
 public class Principal extends javax.swing.JFrame {
-    FileDialog abrir ;
-    JFileChooser arquivo = new JFileChooser();
+    
+    
     /**
      * Creates new form Principal
      */
     public Principal() {
         initComponents();
         this.setLocationRelativeTo(null);
-        
-        abrir = new FileDialog(this,"Carregar Arquivo", FileDialog.LOAD);
-        
-        
+
     }
 
     /**
@@ -45,6 +54,7 @@ public class Principal extends javax.swing.JFrame {
         jScrollPane3 = new javax.swing.JScrollPane();
         txtCMD = new javax.swing.JTextArea();
         jButton3 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Backup E Restauração de pastas");
@@ -58,6 +68,11 @@ public class Principal extends javax.swing.JFrame {
         });
 
         jButton2.setText("Destino");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         tbMatriculas.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -99,6 +114,18 @@ public class Principal extends javax.swing.JFrame {
         jScrollPane3.setViewportView(txtCMD);
 
         jButton3.setText("Iniciar");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+
+        jButton4.setText("Carregar");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -121,6 +148,8 @@ public class Principal extends javax.swing.JFrame {
                             .addComponent(txtDestino)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jButton4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton3)))
                 .addContainerGap())
         );
@@ -140,7 +169,9 @@ public class Principal extends javax.swing.JFrame {
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 146, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton3)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton3)
+                    .addComponent(jButton4))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -148,16 +179,44 @@ public class Principal extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        abrir.setVisible(true);
-       // arquivo.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        txtOrigem.setText(abrir.getDirectory());
-        
-//        if(abrir.getFile()==null){
-//            //txtArquivo.setText("");
-//        }else{
-//            txtOrigem.setText(abrir.getDirectory()+abrir.getFile());
-//        }
+        JFileChooser origem = new JFileChooser();
+        origem.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        origem.showOpenDialog(null);
+        System.out.println(origem.getSelectedFile());
+        txtOrigem.setText(origem.getSelectedFile().toString());
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        JFileChooser destino = new JFileChooser();
+        destino.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        destino.showOpenDialog(null);
+        System.out.println(destino.getSelectedFile());
+        txtDestino.setText(destino.getSelectedFile().toString());
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        CarregarDiretorios();
+    }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        String orig = txtOrigem.getText().trim();
+        String dest = txtDestino.getText().trim();
+        if(!"".equals(orig) && !"".equals(dest) ){
+            try {
+                // System.out.println("Entrou");
+
+                IniciarBackup();
+                InOut.MsgDeInformacao("Sistema Informa", "Backup concluido com sucesso");
+            } catch (IOException ex) {
+                InOut.MsgDeErro("Erro", "Erro ao copiar");
+                ex.printStackTrace();
+            }
+        }else{
+            InOut.MsgDeErro("Erro", "Selecione as pastas");
+        }
+        
+        
+    }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -198,6 +257,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTable tbMatriculas;
@@ -205,4 +265,117 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JTextField txtDestino;
     private javax.swing.JTextField txtOrigem;
     // End of variables declaration//GEN-END:variables
+
+    private void CarregarDiretorios() {
+        String caminho = txtOrigem.getText().trim();
+        ArrayList<File> arquivos = new ArrayList<File>();
+        DefaultTableModel modelo1 = (DefaultTableModel) tbMatriculas.getModel();
+        
+        File f = new File(caminho);
+        String[] lista = f.list();
+        modelo1.setRowCount(0);
+        
+        for(String arq : lista) {             
+            arquivos.add(new File( arq));  
+        }
+        
+        for (File dir : arquivos) {
+           // System.out.println (dir.getName());
+            
+            modelo1.addRow(new Object[]{
+                false,         
+                dir.getName()
+            });
+            
+        }
+     
+    }
+
+    private void IniciarBackup() throws IOException {
+        int tamanho = 0;
+        tamanho = tbMatriculas.getRowCount();
+        boolean linha;
+        String origem = new String();
+        String destino = new String();
+        File fOrigem,fDestino;
+        
+        for (int i = 0; i < tamanho; i++) {
+            linha = (boolean) tbMatriculas.getValueAt(i, 0);
+            
+            origem = txtOrigem.getText().trim()+"/"+(String) tbMatriculas.getValueAt(i,1);
+            destino = txtDestino.getText().trim()+"/"+(String) tbMatriculas.getValueAt(i,1);
+            
+            fOrigem = new File(origem);
+            fDestino = new File(destino);
+            
+            if(linha){               
+                origem= (String) tbMatriculas.getValueAt(i,1);
+                System.out.println(origem);
+                copyDirectory(fOrigem, fDestino);
+            }
+        }
+    }
+
+    public void copyDirectory(File srcDir, File dstDir) throws IOException {
+        if (srcDir.isDirectory()) {
+            if (!dstDir.exists()) {
+                dstDir.mkdir();
+            }
+            String[] children = srcDir.list();
+            for (int i=0; i<children.length; i++) {
+                copyDirectory(new File(srcDir, children[i]),
+                                     new File(dstDir, children[i]));
+            }
+        } else {
+            copyFile(srcDir, dstDir);
+        }
+    }
+
+    private void copyFile(File src, File dst)  throws IOException {
+       
+//        SwingWorker work = new SwingWorker() {
+//
+//            @Override
+//            protected Object doInBackground() throws Exception {
+//                System.out.println(src.toString());
+//                txtCMD.append(src.toString()+"\n");
+//                OutputStream saida;
+//                try (InputStream in = new FileInputStream(src)) {
+//                    saida = new FileOutputStream(dst); // Transferindo bytes de entrada para saída
+//                    byte[] buf = new byte[1024];
+//                    int len;
+//                    while ((len = in.read(buf)) > 0) {
+//                        saida.write(buf, 0, len);
+//                    }
+//                } // Transferindo bytes de entrada para saída
+//                saida.close(); 
+//                return null;
+//            }
+//
+//        };
+//        work.execute();
+        
+
+        
+        System.out.println(src.toString());
+        txtCMD.append(src.toString()+"\n");
+        OutputStream saida;
+        try (InputStream in = new FileInputStream(src)) {
+            saida = new FileOutputStream(dst); // Transferindo bytes de entrada para saída
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                saida.write(buf, 0, len);
+            }
+        } // Transferindo bytes de entrada para saída
+	saida.close();
+
+    }
+
+
+
+
+
+
+
 }
