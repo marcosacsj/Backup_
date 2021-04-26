@@ -5,6 +5,7 @@
  */
 package principal;
 
+
 import principal.base.LookAndFeel;
 
 /**
@@ -17,8 +18,7 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        LookAndFeel.HiFi();
+        LookAndFeel.Nimbus();
         new Principal().setVisible(true);
     }
-    
 }
